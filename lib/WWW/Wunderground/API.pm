@@ -1,7 +1,7 @@
 package WWW::Wunderground::API;
 
 use 5.006;
-use Any::Moose;
+use Moo;
 use LWP::Simple;
 use XML::Simple;
 use JSON::Any;
@@ -13,29 +13,34 @@ WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
-has api_key => (is=>'ro', isa=>'Str');
-has api_type => (is=>'rw', default=>sub {$_[0]->api_key ? 'json' : 'xml'});
-has location => (is=>'rw', required=>1, trigger=>\&update);
-has xml => (is=>'rw', isa=>'Str');
-has json => (is=>'rw', isa=>'Str');
-has data => (is=>'rw',isa=>'Hash::AsObject');
+has location => (is=>'rw', required=>1);
+has api_key => (is=>'ro');
+has api_type => (is=>'rw', default=>'json');
+has raw => (is=>'rw', default=>'');
+has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
+has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 
+sub json {
+  my $self = shift;
+  return $self->api_type eq 'json' ? $self->raw : undef;
+}
+
+sub xml {
+  my $self = shift;
+  return $self->api_type eq 'xml' ? $self->raw : undef;
+}
 
 
 sub update {
   my $self = shift;
-  if ($self->api_type eq 'json') {
-    my $json = get('http://api.wunderground.com/api/'.$self->api_key.'/conditions/q/'.$self->location.'.json');
-    if ($json) {
-      $self->json($json);
-      $self->data(Hash::AsObject->new(JSON::Any->jsonToObj($json)->{current_observation})); 
-    }
+  if ($self->api_key) {
+    $self->api_call('conditions'); 
   } else {
     my $xml = get('http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query='.$self->location);
     if ($xml) {
@@ -45,18 +50,50 @@ sub update {
   }
 }
 
+sub guess_key {
+	my $self = shift;
+	my ($struc,$action) = @_;
+
+	#try to guess result structure key
+	return $action if defined($struc->{$action});
+	foreach my $key (keys %$struc) {
+		next if $key=~ /(response|features|version|termsofservice)/i;
+		return $key;
+	}
+}
+
 sub api_call {
 	my $self = shift;
 	my ($action, $location) = @_;
+	$location||=$self->location;
 	if ($self->api_key) {
 		my $base = 'http://api.wunderground.com/api';
-		my $url = join('/', $base,$self->api_key,$action,$location).'.json';
-		warn "CALLING $url\n\n";
-		#my $json = get($url);
+		my $url = join('/', $base,$self->api_key,$action,'q',$location).'.'.$self->api_type;
+
+    my $result;
+    unless ($result = $self->cache->get($url)) {
+      $result = get($url);
+      $self->cache->set($url,$result);
+    }
+
+    $self->raw($result);
+ 
+		my $struc = $self->api_type eq 'json'
+			? JSON::Any->jsonToObj($self->raw)
+			: XMLin($self->raw);
+
+		my $action_key = $self->guess_key($struc,$action);
+
+    $struc = $struc->{$action_key} if $action_key;
+    $self->data->{$action} = $struc;
+
+    return $struc;
 	} else {
-		warn "Only basic weather conditions are supported using the XML interface";
+		warn "Only basic weather conditions are supported using the deprecated keyless interface";
+		warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
 	}
 }
+
 
 around BUILDARGS => sub {
   my $orig = shift;
@@ -71,6 +108,8 @@ around BUILDARGS => sub {
 sub AUTOLOAD {
   my $self = shift;
   our $AUTOLOAD;
+	print "Autoloading: $AUTOLOAD\n";
+	return;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
   if (defined($val)) {
@@ -80,8 +119,31 @@ sub AUTOLOAD {
     return undef;
   }
 }
+__PACKAGE__->meta->make_immutable;
 
-#no Any::Moose;
+
+#The following exists purely as an example for others of what not to do.
+#Use a Cache::Cache or CLI Cache. Really.
+package WWW::Wunderground::API::BadCache;
+use Moo;
+
+has store=>(is=>'rw', lazy=>1, default=>sub{{}});
+
+sub get {
+  my $self = shift;
+  my ($key) = @_;
+  if (exists($self->store->{$key})) {
+    return $self->store->{$key};
+  }
+  return undef;
+}
+
+sub set {
+  my $self = shift;
+  my ($key, $val) = @_;
+  $self->store->{$key} = $val;
+  return $val;
+}
 
 
 =head1 SYNOPSIS
@@ -113,7 +175,9 @@ to see all of the tasty data bits.
 
 =head2 update()
 
-Refetch data from the server. This is called automatically every time location is set, but you may want to put it in a timer.
+Included for backward compatibility only.
+Refetches conditions data from the server. It will be removed in a future release.
+If you specify an api_key then this is equvilent of ->api_call('conditions')
 
 =head2 location()
 
@@ -128,10 +192,16 @@ Change the location. For example:
     $wun->location('San Diego, CA');
     my $socal_temp = $wun->data->temp_f;
 
+=head2 raw()
+
+Returns raw text result from the most recent API call. This will be either xml or json depending on api_type
+
 =head2 xml()
 
+*Deprecated* - use raw() instead
 Returns raw xml result from wunderground server where applicable
 
+*Deprecated* - use raw() instead
 =head2 json()
 
 Returns raw json result from wunderground server where applicable
