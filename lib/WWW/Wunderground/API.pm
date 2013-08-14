@@ -22,9 +22,10 @@ our $VERSION = '0.05';
 has location => (is=>'rw', required=>1);
 has api_key => (is=>'ro');
 has api_type => (is=>'rw', default=>'json');
+has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
+has auto_api => (is=>'ro', default=>0 );
 has raw => (is=>'rw', default=>'');
 has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
-has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 
 sub json {
   my $self = shift;
@@ -87,7 +88,7 @@ sub api_call {
     $struc = $struc->{$action_key} if $action_key;
     $self->data->{$action} = $struc;
 
-    return $struc;
+    return new Hash::AsObject($struc);
 	} else {
 		warn "Only basic weather conditions are supported using the deprecated keyless interface";
 		warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
@@ -108,14 +109,14 @@ around BUILDARGS => sub {
 sub AUTOLOAD {
   my $self = shift;
   our $AUTOLOAD;
-	print "Autoloading: $AUTOLOAD\n";
-	return;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
   if (defined($val)) {
     return $val;
   } else {
+    return $self->api_call($key) if $self->auto_api;
     warn "$key is not defined. Is it a valid key, and is data actually loading?";
+    warn "If you're trying to autoload an endpoint, set auto_api to something truthy";
     return undef;
   }
 }
@@ -164,13 +165,26 @@ to see all of the tasty data bits.
     #or airport identifier
     my $wun = new WWW::Wunderground::API('KIAD');
 
-    #using the json API.
-    my $wun = new WWW::Wunderground::API(location=>'KIAD', api_key=>'your wunderground API key');
+    #using the options
 
-    print 'The temperature is: '.$wun->data->temp_f."\n";
-    print 'The rest of the world calls that: '.$wun->temp_c."\n"; #Keys are AUTOLOADed to $wun->data->$key for lazy typers.
-    print 'XML source:'.$wun->xml if $wun->api_type eq 'xml';
-    print 'JSON source:'.$wun->json if $wun->api_type eq 'json';
+    my $wun = new WWW::Wunderground::API(
+      location=>'22152',
+      api_key=>'my wunderground api key',
+      auto_api=>1,
+      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea. 
+    );
+
+    
+    #Check the wunderground docs for details, but here are just a few examples 
+    print 'The temperature is: '.$wun->conditions->temp_f."\n"; 
+    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n"; 
+    print 'Record high temperature year: '.$wun->almanac->temp_high->recordyear."\n";
+    print "Sunrise at:".$wun->astronomy->sunrise->hour.':'.$wun->astronomy->sunrise->minute."\n";
+    print "Simple forecast:".$wun->forecast->simpleforecast->forecastday->[0]{conditions}."\n";
+    print "Text forecast:".$wun->forecast->txt_forecast->forecastday->[0]{fcttext}."\n";
+    print "Long range forecast:".$wun->forecast10day->txt_forecast->forecastday->[9]{fcttext}."\n";
+    print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
+    print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
 
 =head2 update()
@@ -191,6 +205,16 @@ Change the location. For example:
 
     $wun->location('San Diego, CA');
     my $socal_temp = $wun->data->temp_f;
+
+=head_2 auto_api
+
+set auto_api to something truthy to have the module automatically make API calls without the use of api_call()
+
+=head_2 api_call( api_name, location )
+
+set api_name to any location-based wunderground api call (eg almanac,conditions,forecast,history...)
+set location to any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+
 
 =head2 raw()
 

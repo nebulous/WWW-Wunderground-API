@@ -24,18 +24,33 @@ to see all of the tasty data bits.
     #or airport identifier
     my $wun = new WWW::Wunderground::API('KIAD');
 
-    #using the json API.
-    my $wun = new WWW::Wunderground::API(location=>'KIAD', api_key=>'your wunderground API key');
+    #using the options
 
-    print 'The temperature is: '.$wun->data->temp_f."\n";
-    print 'The rest of the world calls that: '.$wun->temp_c."\n"; #Keys are AUTOLOADed to $wun->data->$key for lazy typers.
-    print 'XML source:'.$wun->xml if $wun->api_type eq 'xml';
-    print 'JSON source:'.$wun->json if $wun->api_type eq 'json';
+    my $wun = new WWW::Wunderground::API(
+      location=>'22152',
+      api_key=>'my wunderground api key',
+      auto_api=>1,
+      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea. 
+    );
+
+    
+    #Check the wunderground docs for details, but here are just a few examples 
+    print 'The temperature is: '.$wun->conditions->temp_f."\n"; 
+    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n"; 
+    print 'Record high temperature year: '.$wun->almanac->temp_high->recordyear."\n";
+    print "Sunrise at:".$wun->astronomy->sunrise->hour.':'.$wun->astronomy->sunrise->minute."\n";
+    print "Simple forecast:".$wun->forecast->simpleforecast->forecastday->[0]{conditions}."\n";
+    print "Text forecast:".$wun->forecast->txt_forecast->forecastday->[0]{fcttext}."\n";
+    print "Long range forecast:".$wun->forecast10day->txt_forecast->forecastday->[9]{fcttext}."\n";
+    print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
+    print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
 
 =head2 update()
 
-Refetch data from the server. This is called automatically every time location is set, but you may want to put it in a timer.
+Included for backward compatibility only.
+Refetches conditions data from the server. It will be removed in a future release.
+If you specify an api_key then this is equvilent of ->api_call('conditions')
 
 =head2 location()
 
@@ -50,10 +65,26 @@ Change the location. For example:
     $wun->location('San Diego, CA');
     my $socal_temp = $wun->data->temp_f;
 
+=head_2 auto_api
+
+set auto_api to something truthy to have the module automatically make API calls without the use of api_call()
+
+=head_2 api_call( api_name, location )
+
+set api_name to any location-based wunderground api call (eg almanac,conditions,forecast,history...)
+set location to any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+
+
+=head2 raw()
+
+Returns raw text result from the most recent API call. This will be either xml or json depending on api_type
+
 =head2 xml()
 
+*Deprecated* - use raw() instead
 Returns raw xml result from wunderground server where applicable
 
+*Deprecated* - use raw() instead
 =head2 json()
 
 Returns raw json result from wunderground server where applicable
