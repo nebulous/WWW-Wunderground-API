@@ -120,6 +120,9 @@ sub AUTOLOAD {
     return undef;
   }
 }
+
+sub DESTROY {}
+
 __PACKAGE__->meta->make_immutable;
 
 
