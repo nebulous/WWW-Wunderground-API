@@ -50,7 +50,7 @@ to see all of the tasty data bits.
 
 Included for backward compatibility only.
 Refetches conditions data from the server. It will be removed in a future release.
-If you specify an api_key then this is equvilent of ->api_call('conditions')
+If you specify an api_key then this is equvilent of ->api_call('conditions') and is subject to the same cache
 
 =head2 location()
 
@@ -65,30 +65,34 @@ Set the location. For example:
     $wun->location('San Diego, CA');
     my $socal_temp = $wun->conditions->temp_f;
 
+Valid locations can be derived from others by calling the geolookup endpoint, but you probably already know where you are.
 
-=head_2 auto_api
+
+=head2 auto_api
 
 set auto_api to something truthy to have the module automatically make API calls without the use of api_call()
 
 
-=head_2 api_call( api_name, location )
+=head2 api_call( api_name, <location> )
 
 set api_name to any location-based wunderground api call (eg almanac,conditions,forecast,history...)
-set location to any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+set (optional: defaults to L</"location()">) location to any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
 
 
 =head2 raw()
 
-Returns raw text result from the most recent API call. This will be either xml or json depending on api_type
+Returns raw text result from the most recent API call. This will be either xml or json depending on api_type.
+You can also set this to whatever json/xml you'd like, though I can't imagine why you'd want to.
 
 =head2 xml()
 
-*Deprecated* - use raw() instead
+*Deprecated* - use L</"raw()"> instead
 Returns raw xml result from wunderground server where applicable
 
-*Deprecated* - use raw() instead
+
 =head2 json()
 
+*Deprecated* - use L</"raw()"> instead
 Returns raw json result from wunderground server where applicable
 
 =head2 data()
