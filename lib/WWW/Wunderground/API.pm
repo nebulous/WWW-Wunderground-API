@@ -198,20 +198,22 @@ If you specify an api_key then this is equvilent of ->api_call('conditions')
 
 =head2 location()
 
-Change the location. For example:
+Set the location. For example:
 
     my $wun = new WWW::Wunderground::API('22030');
-    my $ffx_temp = $wun->data->temp_f;
+    my $ffx_temp = $wun->conditions->temp_f;
 
     $wun->location('KJFK');
-    my $ny_temp = $wun->data->temp_f;
+    my $ny_temp = $wun->conditions->temp_f;
 
     $wun->location('San Diego, CA');
-    my $socal_temp = $wun->data->temp_f;
+    my $socal_temp = $wun->conditions->temp_f;
+
 
 =head_2 auto_api
 
 set auto_api to something truthy to have the module automatically make API calls without the use of api_call()
+
 
 =head_2 api_call( api_name, location )
 
@@ -255,9 +257,10 @@ Please report any bugs or feature requests to C<bug-www-wunderground-api at rt.c
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=WWW-Wunderground-API>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
+=head1 SOURCE
+
 Better yet, fork on github and send me a pull request:
 L<https://github.com/nebulous/WWW-Wunderground-API>
-
 
 
 =head1 SUPPORT
@@ -292,7 +295,7 @@ L<http://search.cpan.org/dist/WWW-Wunderground-API/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 John Lifsey.
+Copyright 2013 John Lifsey.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
