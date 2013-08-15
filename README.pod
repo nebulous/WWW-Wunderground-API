@@ -45,6 +45,7 @@ to see all of the tasty data bits.
     print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
     print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
+=head1 METHODS/ACCESSORS
 
 =head2 update()
 
@@ -75,8 +76,20 @@ set auto_api to something truthy to have the module automatically make API calls
 
 =head2 api_call( api_name, <location> )
 
-set api_name to any location-based wunderground api call (eg almanac,conditions,forecast,history...)
-set (optional: defaults to L</"location()">) location to any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+Set api_name to any location-based wunderground api call (almanac,conditions,forecast,history...).
+
+Location is optional and defaults to </"location()">). Can be any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+
+    #Almanac data for 90210
+    $wun->api_call('almanac','90210');
+
+    #If L</"auto_api"> is set the following is equivalent
+    $wun->location(90120);
+    $wun->almanac;
+
+    #10 day forecast for New York
+    $wun->api_call('forecast10day'','KJFK');
+
 
 
 =head2 raw()
@@ -86,13 +99,15 @@ You can also set this to whatever json/xml you'd like, though I can't imagine wh
 
 =head2 xml()
 
-*Deprecated* - use L</"raw()"> instead
+*Deprecated* - use L</"raw()"> instead.
+
 Returns raw xml result from wunderground server where applicable
 
 
 =head2 json()
 
-*Deprecated* - use L</"raw()"> instead
+*Deprecated* - use L</"raw()"> instead.
+
 Returns raw json result from wunderground server where applicable
 
 =head2 data()
