@@ -1,6 +1,6 @@
 =head1 NAME
 
-WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
+WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
@@ -10,9 +10,8 @@ Version 0.05
 
 Connects to the Weather Underground JSON/XML service and parses the data
 into something usable. The entire response is available in Hash::AsObject form, so
-any data that comes from the server is accessible. 
-
-Dump L</"data()"> see all of the tasty data bits.
+any data that comes from the server is accessible. Print a Data::Dumper of ->data
+to see all of the tasty data bits.
 
     use WWW::Wunderground::API;
 
@@ -52,7 +51,7 @@ Dump L</"data()"> see all of the tasty data bits.
 
 Included for backward compatibility only.
 Refetches conditions data from the server. It will be removed in a future release.
-If you specify an api_key then this is equvilent of L</"api_call">('conditions') and is subject to the same cache
+If you specify an api_key then this is equvilent of ->api_call('conditions') and is subject to the same cache
 
 =head2 location()
 
@@ -113,15 +112,15 @@ Returns raw json result from wunderground server where applicable
 
 =head2 data()
 
-Contains all weather data from server parsed into convenient Hash::AsObject form;
+Contains all weather data from server parsed into convenient L<Hash::AsObject> form;
 
 =head2 api_key()
 
-Required for JSON api access.
+Required for JSON api access. Defaults to $ENV{WUNDERGROUND_API}
 
 =head2 api_type()
 
-Defaults to xml. If an api_key is specified, this will be set to json.
+Defaults to json. If no api_key is specified it will be set to xml and only basic weather conditions will be available.
 
 =head1 AUTHOR
 

@@ -9,7 +9,7 @@ use Hash::AsObject;
 
 =head1 NAME
 
-WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
+WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
@@ -20,8 +20,8 @@ Version 0.05
 our $VERSION = '0.05';
 
 has location => (is=>'rw', required=>1);
-has api_key => (is=>'ro');
-has api_type => (is=>'rw', default=>'json');
+has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API} });
+has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xml' });
 has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 has auto_api => (is=>'ro', default=>0 );
 has raw => (is=>'rw', default=>'');
@@ -43,15 +43,20 @@ sub update {
   if ($self->api_key) {
     $self->api_call('conditions'); 
   } else {
-    my $xml = get('http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query='.$self->location);
+    my $legacy_url = 'http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query='.$self->location;
+    my $xml;
+    unless($xml = $self->cache->get($legacy_url)) {
+      $xml = get($legacy_url);
+      $self->cache->set($legacy_url,$xml);
+    }
     if ($xml) {
-      $self->xml($xml);
-      $self->data(Hash::AsObject->new(XMLin($xml)));
+      $self->raw($xml);
+      $self->data(Hash::AsObject->new({conditions=>XMLin($xml)}));
     }
   }
 }
 
-sub guess_key {
+sub _guess_key {
 	my $self = shift;
 	my ($struc,$action) = @_;
 
@@ -83,15 +88,15 @@ sub api_call {
 			? JSON::Any->jsonToObj($self->raw)
 			: XMLin($self->raw);
 
-		my $action_key = $self->guess_key($struc,$action);
+		my $action_key = $self->_guess_key($struc,$action);
 
     $struc = $struc->{$action_key} if $action_key;
     $self->data->{$action} = $struc;
 
     return new Hash::AsObject($struc);
 	} else {
-		warn "Only basic weather conditions are supported using the deprecated keyless interface";
-		warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
+	  warn "Only basic weather conditions are supported using the deprecated keyless interface";
+	  warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
 	}
 }
 
@@ -111,6 +116,12 @@ sub AUTOLOAD {
   our $AUTOLOAD;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
+
+  unless ($val) {
+    $self->update if ($self->auto_api and !$self->data->conditions);
+    $val = $self->data->conditions->$key if $self->data->conditions;
+  }
+
   if (defined($val)) {
     return $val;
   } else {
@@ -256,15 +267,15 @@ Returns raw json result from wunderground server where applicable
 
 =head2 data()
 
-Contains all weather data from server parsed into convenient Hash::AsObject form;
+Contains all weather data from server parsed into convenient L<Hash::AsObject> form;
 
 =head2 api_key()
 
-Required for JSON api access.
+Required for JSON api access. Defaults to $ENV{WUNDERGROUND_API}
 
 =head2 api_type()
 
-Defaults to xml. If an api_key is specified, this will be set to json.
+Defaults to json. If no api_key is specified it will be set to xml and only basic weather conditions will be available.
 
 =head1 AUTHOR
 
