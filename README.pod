@@ -4,7 +4,7 @@ WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =head1 SYNOPSIS
 
@@ -96,6 +96,10 @@ Location is optional and defaults to </"location()">). Can be any valid location
 
 Returns raw text result from the most recent API call. This will be either xml or json depending on api_type.
 You can also set this to whatever json/xml you'd like, though I can't imagine why you'd want to.
+
+=head2 cache()
+
+Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CLI> caches should work.
 
 =head2 xml()
 
