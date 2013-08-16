@@ -7,7 +7,7 @@ license  'perl';
 
 build_requires 'Test::More';
 
-requires 'Moo';
+requires 'Moo'=>'1.0';
 requires 'LWP::Simple';
 requires 'XML::Simple';
 requires 'JSON::Any';
