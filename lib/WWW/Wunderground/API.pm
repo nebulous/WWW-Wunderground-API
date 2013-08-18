@@ -138,7 +138,7 @@ __PACKAGE__->meta->make_immutable;
 
 
 #The following exists purely as an example for others of what not to do.
-#Use a Cache::Cache or CLI Cache. Really.
+#Use a Cache::Cache or CHI Cache. Really.
 package WWW::Wunderground::API::BadCache;
 use Moo;
 
@@ -257,7 +257,7 @@ You can also set this to whatever json/xml you'd like, though I can't imagine wh
 
 =head2 cache()
 
-Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CLI> caches should work.
+Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CHI> caches should work.
 
 =head2 xml()
 

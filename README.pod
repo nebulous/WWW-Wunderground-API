@@ -102,7 +102,7 @@ You can also set this to whatever json/xml you'd like, though I can't imagine wh
 
 =head2 cache()
 
-Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CLI> caches should work.
+Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CHI> caches should work.
 
 =head2 xml()
 
