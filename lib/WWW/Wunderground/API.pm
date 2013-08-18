@@ -236,12 +236,12 @@ set auto_api to something truthy to have the module automatically make API calls
 
 Set api_name to any location-based wunderground api call (almanac,conditions,forecast,history...).
 
-Location is optional and defaults to </"location()">). Can be any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+Location is optional and defaults to L</"location()">. Can be any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
 
     #Almanac data for 90210
     $wun->api_call('almanac','90210');
 
-    #If L</"auto_api"> is set the following is equivalent
+    #If auto_api=>1 the following is equivalent
     $wun->location(90120);
     $wun->almanac;
 
