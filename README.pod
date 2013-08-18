@@ -45,6 +45,9 @@ to see all of the tasty data bits.
     print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
     print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
+    #Conditions is autoloaded into the root of the object
+    print "Temp_f:".$wun->temp_f."\n";
+
 =head1 METHODS/ACCESSORS
 
 =head2 update()
