@@ -1,5 +1,8 @@
 Revision history for WWW-Wunderground-API
 
+0.02    2013-08-18
+        Documentation and POD test fixes
+
 0.05
         2013-08-14
         Lots of changes. Hopefully none breaking, but with waaay more features.

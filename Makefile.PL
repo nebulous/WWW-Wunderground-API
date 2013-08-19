@@ -14,6 +14,7 @@ requires 'LWP::Simple';
 requires 'XML::Simple';
 requires 'JSON::Any';
 requires 'Hash::AsObject';
+recommends 'CHI'=> '0.50';
 recommends 'Cache::FileCache'=> 0;
 
 auto_install;
