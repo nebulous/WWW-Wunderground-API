@@ -2,9 +2,10 @@ package WWW::Wunderground::API;
 
 use 5.006;
 use Moo;
+use URI;
+use JSON::Any;
 use LWP::Simple;
 use XML::Simple;
-use JSON::Any;
 use Hash::AsObject;
 
 =head1 NAME
@@ -13,14 +14,14 @@ WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 has location => (is=>'rw', required=>1);
-has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API} });
+has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API}||$ENV{WUNDERGROUND_KEY} });
 has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xml' });
 has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 has auto_api => (is=>'ro', default=> sub {0} );
@@ -70,11 +71,29 @@ sub _guess_key {
 
 sub api_call {
 	my $self = shift;
-	my ($action, $location) = @_;
-	$location||=$self->location;
+  my $action = shift;
+
+  my %params;
+
+  if (scalar(@_) == 1) {
+    if (ref($_[0])) {
+      (%params) = %{$_[0]};
+    } else {
+      $params{location} = $_[0];
+    }
+  } elsif (scalar(@_) > 1) {
+    (%params) = @_;
+  }
+  my $location = delete $params{location} || $self->location;
+  my $format = delete $params{format} 
+    || ($action=~/(radar|satellite)/ 
+      ? 'gif' 
+      : $self->api_type);
+
 	if ($self->api_key) {
 		my $base = 'http://api.wunderground.com/api';
-		my $url = join('/', $base,$self->api_key,$action,'q',$location).'.'.$self->api_type;
+		my $url = URI->new(join('/', $base,$self->api_key,$action,'q',$location).".$format");
+    $url->query_form(%params);
 
     my $result;
     unless ($result = $self->cache->get($url)) {
@@ -83,10 +102,16 @@ sub api_call {
     }
 
     $self->raw($result);
+
+    if ($format !~ /(json|xml)/) {
+      $self->data->{$action} = $self->raw();
+      return $self->raw();
+    }
  
-		my $struc = $self->api_type eq 'json'
+		my $struc = $format eq 'json'
 			? JSON::Any->jsonToObj($self->raw)
 			: XMLin($self->raw);
+
 
 		my $action_key = $self->_guess_key($struc,$action);
 
@@ -125,7 +150,7 @@ sub AUTOLOAD {
   if (defined($val)) {
     return $val;
   } else {
-    return $self->api_call($key) if $self->auto_api;
+    return $self->api_call($key,@_) if $self->auto_api;
     warn "$key is not defined. Is it a valid key, and is data actually loading?";
     warn "If you're trying to autoload an endpoint, set auto_api to something truthy";
     return undef;
@@ -190,8 +215,22 @@ to see all of the tasty data bits.
 
     
     #Check the wunderground docs for details, but here are just a few examples 
+
+    #the following $t1-$t6 are all equivalent:
+      $wun->location(22152);
+
+      $t1 = $wun->api_call('conditions')->temp_f
+      $t2 = $wun->api_call('conditions', 22152)->temp_f
+      $t3 = $wun->api_call('conditions', {location=>22152})->temp_f
+      $t4 = $wun->api_call('conditions', location=>22152)->temp_f
+      $t5 = $wun->conditions->temp_f
+      $t6 = $wun->temp_f
+
     print 'The temperature is: '.$wun->conditions->temp_f."\n"; 
     print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n"; 
+    my $sat_gif = $wun->satellite; #image calls default to 300x300 gif
+    my $rad_png = $wun->radar( format=>'png', width=>500, height=>500 ); #or pass parameters to be specific
+    my $rad_animation = $wun->animatedsatellite(); #animations are always gif
     print 'Record high temperature year: '.$wun->almanac->temp_high->recordyear."\n";
     print "Sunrise at:".$wun->astronomy->sunrise->hour.':'.$wun->astronomy->sunrise->minute."\n";
     print "Simple forecast:".$wun->forecast->simpleforecast->forecastday->[0]{conditions}."\n";
