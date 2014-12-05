@@ -96,9 +96,10 @@ sub api_call {
     $url->query_form(%params);
 
     my $result;
-    unless ($result = $self->cache->get($url)) {
-      $result = get($url);
-      $self->cache->set($url,$result);
+    my $url_string = $url->as_string();
+    unless ($result = $self->cache->get($url_string)) {
+      $result = get($url_string);
+      $self->cache->set($url_string,$result);
     }
 
     $self->raw($result);
