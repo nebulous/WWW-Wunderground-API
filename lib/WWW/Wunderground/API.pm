@@ -118,7 +118,10 @@ sub api_call {
     $struc = $struc->{$action_key} if $action_key;
     $self->data->{$action} = $struc;
 
-    return new Hash::AsObject($struc);
+    return 
+      ref($struc) eq "HASH" ? 
+        new Hash::AsObject($struc) :
+        $struc;
 	} else {
 	  warn "Only basic weather conditions are supported using the deprecated keyless interface";
 	  warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
