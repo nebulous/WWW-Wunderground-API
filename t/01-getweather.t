@@ -28,7 +28,7 @@ my $time = $wun->cache->set('test',time);
 is($time,$wun->cache->get('test'), 'BadCache "works." But don\'t use it.');
 
 SKIP: {
-  skip "API tests require WUNDERGROUND_KEY environment variable to be set.", 4 unless $ENV{WUNDERGROUND_API};
+  skip "API tests require WUNDERGROUND_KEY environment variable to be set.", 5 unless $ENV{WUNDERGROUND_API};
   my $wun = new WWW::Wunderground::API(location=>'KDCA', auto_api=>1);
   isa_ok($wun,'WWW::Wunderground::API','Got a new Wunderground API object');
   like($wun->temp_f, qr/\d+/, 'Regan National has a temperature: '.$wun->temp_f.'f');
