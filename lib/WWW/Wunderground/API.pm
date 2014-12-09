@@ -42,7 +42,7 @@ sub xml {
 sub update {
   my $self = shift;
   if ($self->api_key) {
-    $self->api_call('conditions'); 
+    $self->api_call('conditions');
   } else {
     my $legacy_url = 'http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query='.$self->location;
     my $xml;
@@ -58,19 +58,19 @@ sub update {
 }
 
 sub _guess_key {
-	my $self = shift;
-	my ($struc,$action) = @_;
+  my $self = shift;
+  my ($struc,$action) = @_;
 
-	#try to guess result structure key
-	return $action if defined($struc->{$action});
-	foreach my $key (keys %$struc) {
-		next if $key=~ /(response|features|version|termsofservice)/i;
-		return $key;
-	}
+  #try to guess result structure key
+  return $action if defined($struc->{$action});
+  foreach my $key (keys %$struc) {
+    next if $key=~ /(response|features|version|termsofservice)/i;
+    return $key;
+  }
 }
 
 sub api_call {
-	my $self = shift;
+  my $self = shift;
   my $action = shift;
 
   my %params;
@@ -85,14 +85,14 @@ sub api_call {
     (%params) = @_;
   }
   my $location = delete $params{location} || $self->location;
-  my $format = delete $params{format} 
-    || ($action=~/(radar|satellite)/ 
-      ? 'gif' 
+  my $format = delete $params{format}
+    || ($action=~/(radar|satellite)/
+      ? 'gif'
       : $self->api_type);
 
-	if ($self->api_key) {
-		my $base = 'http://api.wunderground.com/api';
-		my $url = URI->new(join('/', $base,$self->api_key,$action,'q',$location).".$format");
+  if ($self->api_key) {
+    my $base = 'http://api.wunderground.com/api';
+    my $url = URI->new(join('/', $base,$self->api_key,$action,'q',$location).".$format");
     $url->query_form(%params);
 
     my $result;
@@ -108,25 +108,25 @@ sub api_call {
       $self->data->{$action} = $self->raw();
       return $self->raw();
     }
- 
-		my $struc = $format eq 'json'
-			? JSON::Any->jsonToObj($self->raw)
-			: XMLin($self->raw);
+
+    my $struc = $format eq 'json'
+      ? JSON::Any->jsonToObj($self->raw)
+      : XMLin($self->raw);
 
 
-		my $action_key = $self->_guess_key($struc,$action);
+    my $action_key = $self->_guess_key($struc,$action);
 
     $struc = $struc->{$action_key} if $action_key;
     $self->data->{$action} = $struc;
 
-    return 
-      ref($struc) eq "HASH" ? 
+    return
+      ref($struc) eq "HASH" ?
         new Hash::AsObject($struc) :
         $struc;
-	} else {
-	  warn "Only basic weather conditions are supported using the deprecated keyless interface";
-	  warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
-	}
+  } else {
+    warn "Only basic weather conditions are supported using the deprecated keyless interface";
+    warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
+  }
 }
 
 
@@ -214,24 +214,24 @@ to see all of the tasty data bits.
       location=>'22152',
       api_key=>'my wunderground api key',
       auto_api=>1,
-      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea. 
+      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea.
     );
 
-    
-    #Check the wunderground docs for details, but here are just a few examples 
+
+    #Check the wunderground docs for details, but here are just a few examples
 
     #the following $t1-$t6 are all equivalent:
-      $wun->location(22152);
+    $wun->location(22152);
 
-      $t1 = $wun->api_call('conditions')->temp_f
-      $t2 = $wun->api_call('conditions', 22152)->temp_f
-      $t3 = $wun->api_call('conditions', {location=>22152})->temp_f
-      $t4 = $wun->api_call('conditions', location=>22152)->temp_f
-      $t5 = $wun->conditions->temp_f
-      $t6 = $wun->temp_f
+    $t1 = $wun->api_call('conditions')->temp_f
+    $t2 = $wun->api_call('conditions', 22152)->temp_f
+    $t3 = $wun->api_call('conditions', {location=>22152})->temp_f
+    $t4 = $wun->api_call('conditions', location=>22152)->temp_f
+    $t5 = $wun->conditions->temp_f
+    $t6 = $wun->temp_f
 
-    print 'The temperature is: '.$wun->conditions->temp_f."\n"; 
-    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n"; 
+    print 'The temperature is: '.$wun->conditions->temp_f."\n";
+    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n";
     my $sat_gif = $wun->satellite; #image calls default to 300x300 gif
     my $rad_png = $wun->radar( format=>'png', width=>500, height=>500 ); #or pass parameters to be specific
     my $rad_animation = $wun->animatedsatellite(); #animations are always gif

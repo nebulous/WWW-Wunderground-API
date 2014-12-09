@@ -1,6 +1,6 @@
 #!perl
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use_ok( 'WWW::Wunderground::API' );
 
@@ -34,4 +34,6 @@ SKIP: {
   like($wun->temp_f, qr/\d+/, 'Regan National has a temperature: '.$wun->temp_f.'f');
   ok(length($wun->raw),'raw returns source data');
   isa_ok($wun->data,'Hash::AsObject','Data returns friendly object');
+  my $rad_animation = $wun->animatedsatellite();
+  is(substr($rad_animation,0,3),'GIF',"Animated Satellite returned a GIF");
 }
