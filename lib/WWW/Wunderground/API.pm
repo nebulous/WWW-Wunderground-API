@@ -26,9 +26,11 @@ has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xm
 has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 has auto_api => (is=>'ro', default=> sub {0} );
 has raw => (is=>'rw', default=>sub{''});
+has lang => (is=>'rw', default=>'EN');
 has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
 
 sub json {
+    
   my $self = shift;
   return $self->api_type eq 'json' ? $self->raw : undef;
 }
@@ -92,7 +94,8 @@ sub api_call {
 
   if ($self->api_key) {
     my $base = 'http://api.wunderground.com/api';
-    my $url = URI->new(join('/', $base,$self->api_key,$action,'q',$location).".$format");
+    my $url = URI->new(join('/', $base,$self->api_key,$action,'lang:'.uc($self->lang),'q',$location).".$format");
+    die($url);
     $url->query_form(%params);
 
     my $result;
@@ -145,7 +148,6 @@ sub AUTOLOAD {
   our $AUTOLOAD;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
-
   unless ($val) {
     $self->update if ($self->auto_api and !$self->data->conditions);
     $val = $self->data->conditions->$key if $self->data->conditions;
