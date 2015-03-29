@@ -30,7 +30,6 @@ has lang => (is=>'rw', default=>'EN');
 has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
 
 sub json {
-    
   my $self = shift;
   return $self->api_type eq 'json' ? $self->raw : undef;
 }
@@ -148,6 +147,7 @@ sub AUTOLOAD {
   our $AUTOLOAD;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
+  
   unless ($val) {
     $self->update if ($self->auto_api and !$self->data->conditions);
     $val = $self->data->conditions->$key if $self->data->conditions;
