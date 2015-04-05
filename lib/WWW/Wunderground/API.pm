@@ -94,7 +94,6 @@ sub api_call {
   if ($self->api_key) {
     my $base = 'http://api.wunderground.com/api';
     my $url = URI->new(join('/', $base,$self->api_key,$action,'lang:'.uc($self->lang),'q',$location).".$format");
-    die($url);
     $url->query_form(%params);
 
     my $result;
@@ -216,6 +215,7 @@ to see all of the tasty data bits.
       location=>'22152',
       api_key=>'my wunderground api key',
       auto_api=>1,
+      lang=>'FR',
       cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea.
     );
 
@@ -254,7 +254,7 @@ to see all of the tasty data bits.
 
 Included for backward compatibility only.
 Refetches conditions data from the server. It will be removed in a future release.
-If you specify an api_key then this is equvilent of ->api_call('conditions') and is subject to the same cache
+If you specify an api_key then this is equivalent of ->api_call('conditions') and is subject to the same cache
 
 =head2 location()
 
@@ -294,6 +294,9 @@ Location is optional and defaults to L</"location()">. Can be any valid location
     $wun->api_call('forecast10day'','KJFK');
 
 
+=head2 lang()
+
+Get current language used or set language for the next API call. 
 
 =head2 raw()
 

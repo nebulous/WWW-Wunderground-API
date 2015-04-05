@@ -1,6 +1,6 @@
 #!perl
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 use_ok( 'WWW::Wunderground::API' );
 
@@ -28,7 +28,7 @@ my $time = $wun->cache->set('test',time);
 is($time,$wun->cache->get('test'), 'BadCache "works." But don\'t use it.');
 
 SKIP: {
-  skip "API tests require WUNDERGROUND_KEY environment variable to be set.", 5 unless $ENV{WUNDERGROUND_API};
+  skip "API tests require WUNDERGROUND_API environment variable to be set.", 7 unless $ENV{WUNDERGROUND_API};
   my $wun = new WWW::Wunderground::API(location=>'KDCA', auto_api=>1);
   isa_ok($wun,'WWW::Wunderground::API','Got a new Wunderground API object');
   like($wun->temp_f, qr/\d+/, 'Regan National has a temperature: '.$wun->temp_f.'f');
@@ -36,4 +36,8 @@ SKIP: {
   isa_ok($wun->data,'Hash::AsObject','Data returns friendly object');
   my $rad_animation = $wun->animatedsatellite();
   is(substr($rad_animation,0,3),'GIF',"Animated Satellite returned a GIF");
+  is($wun->lang(),'EN','Default lang is "EN"');
+  $wun->lang('FR');
+  $wun->api_call('forecast10day');
+  like($wun->json(),qr/dimanche/, '10 days forecast in french include "dimanche"');
 }
