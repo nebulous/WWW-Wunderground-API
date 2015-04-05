@@ -296,7 +296,8 @@ Location is optional and defaults to L</"location()">. Can be any valid location
 
 =head2 lang()
 
-Get current language used or set language for the next API call. 
+Set/Get current language for the next API call.
+The default language is 'EN'. See the wunderground API doc for a list of available languages. 
 
 =head2 raw()
 
