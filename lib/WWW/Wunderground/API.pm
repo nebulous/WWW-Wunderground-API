@@ -168,7 +168,7 @@ __PACKAGE__->meta->make_immutable;
 
 
 #The following exists purely as an example for others of what not to do.
-#Use a Cache::Cache or CHI Cache. Really.
+#Use a L<Cache::Cache> or L<CHI> Cache. Really.
 package WWW::Wunderground::API::BadCache;
 use Moo;
 
@@ -194,9 +194,11 @@ sub set {
 =head1 SYNOPSIS
 
 Connects to the Weather Underground JSON/XML service and parses the response data
-into something usable. The entire response is available in Hash::AsObject form, so
-any data that comes from the server is accessible. Print a Data::Dumper of ->data
-to see all of the tasty data bits.
+into something usable.
+
+The entire response is available in L<Hash::AsObject> form, so
+any data that comes from the server is accessible.
+Print a dump of L</"data()"> to see all of the tasty data bits available.
 
     use WWW::Wunderground::API;
 
