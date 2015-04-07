@@ -12,7 +12,7 @@ build_requires 'Test::More';
 requires 'Moo'=>'1.0';
 requires 'LWP::Simple';
 requires 'XML::Simple';
-requires 'JSON::Any';
+requires 'JSON::MaybeXS';
 requires 'Hash::AsObject';
 recommends 'CHI'=> '0.50';
 recommends 'Cache::FileCache'=> 0;

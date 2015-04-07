@@ -3,7 +3,7 @@ package WWW::Wunderground::API;
 use 5.006;
 use Moo;
 use URI;
-use JSON::Any;
+use JSON::MaybeXS;
 use LWP::Simple;
 use XML::Simple;
 use Hash::AsObject;
@@ -111,7 +111,7 @@ sub api_call {
     }
 
     my $struc = $format eq 'json'
-      ? JSON::Any->jsonToObj($self->raw)
+      ? decode_json($self->raw)
       : XMLin($self->raw);
 
 

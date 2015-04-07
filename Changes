@@ -3,6 +3,7 @@ Revision history for WWW-Wunderground-API
 0.08    2015-04-07
         Merge jpjordan's lang enhancements
         cleanup documentation
+        Switch to JSON::MaybeXS
 
 0.07    2014-12-08
         Merge mschilli's warning fixes
