@@ -14,16 +14,16 @@ WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 has location => (is=>'rw', required=>1);
 has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API}||$ENV{WUNDERGROUND_KEY} });
 has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xml' });
-has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
+has cache => (is=>'ro', lazy=>1, default=>sub { WWW::Wunderground::API::BadCache->new });
 has auto_api => (is=>'ro', default=> sub {0} );
 has raw => (is=>'rw', default=>sub{''});
 has lang => (is=>'rw', default=>'EN');
@@ -122,7 +122,7 @@ sub api_call {
 
     return
       ref($struc) eq "HASH" ?
-        new Hash::AsObject($struc) :
+        Hash::AsObject->new($struc) :
         $struc;
   } else {
     warn "Only basic weather conditions are supported using the deprecated keyless interface";
@@ -146,7 +146,7 @@ sub AUTOLOAD {
   our $AUTOLOAD;
   my ($key) = $AUTOLOAD =~ /::(\w+)$/;
   my $val = $self->data->$key;
-  
+
   unless ($val) {
     $self->update if ($self->auto_api and !$self->data->conditions);
     $val = $self->data->conditions->$key if $self->data->conditions;
@@ -193,36 +193,36 @@ sub set {
 
 =head1 SYNOPSIS
 
-Connects to the Weather Underground JSON/XML service and parses the data
+Connects to the Weather Underground JSON/XML service and parses the response data
 into something usable. The entire response is available in Hash::AsObject form, so
 any data that comes from the server is accessible. Print a Data::Dumper of ->data
 to see all of the tasty data bits.
 
     use WWW::Wunderground::API;
 
-    #location
+    # location
     my $wun = new WWW::Wunderground::API('Fairfax, VA');
 
-    #or zipcode
+    # or zipcode
     my $wun = new WWW::Wunderground::API('22030');
 
-    #or airport identifier
+    # or airport identifier
     my $wun = new WWW::Wunderground::API('KIAD');
 
-    #using the options
+    # exercise several options
 
     my $wun = new WWW::Wunderground::API(
-      location=>'22152',
-      api_key=>'my wunderground api key',
-      auto_api=>1,
-      lang=>'FR',
-      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea.
+      location => '22152',
+      api_key => 'my wunderground api key',
+      auto_api => 1,
+      lang => 'FR',
+      cache => Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea.
     );
 
 
-    #Check the wunderground docs for details, but here are just a few examples
+    # Check the wunderground docs for details, but here are just a few examples
 
-    #the following $t1-$t6 are all equivalent:
+    # the following $t1-$t6 are all equivalent:
     $wun->location(22152);
 
     $t1 = $wun->api_call('conditions')->temp_f
@@ -232,11 +232,16 @@ to see all of the tasty data bits.
     $t5 = $wun->conditions->temp_f
     $t6 = $wun->temp_f
 
+    # simple current conditions
     print 'The temperature is: '.$wun->conditions->temp_f."\n";
     print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n";
+
+    # radar/satellite imagery
     my $sat_gif = $wun->satellite; #image calls default to 300x300 gif
     my $rad_png = $wun->radar( format=>'png', width=>500, height=>500 ); #or pass parameters to be specific
     my $rad_animation = $wun->animatedsatellite(); #animations are always gif
+
+    # almanac / forecast / more.
     print 'Record high temperature year: '.$wun->almanac->temp_high->recordyear."\n";
     print "Sunrise at:".$wun->astronomy->sunrise->hour.':'.$wun->astronomy->sunrise->minute."\n";
     print "Simple forecast:".$wun->forecast->simpleforecast->forecastday->[0]{conditions}."\n";
@@ -245,7 +250,7 @@ to see all of the tasty data bits.
     print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
     print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
-    #Conditions is autoloaded into the root of the object
+    # Conditions is autoloaded into the root of the object
     print "Temp_f:".$wun->temp_f."\n";
 
 =head1 METHODS/ACCESSORS
@@ -297,7 +302,7 @@ Location is optional and defaults to L</"location()">. Can be any valid location
 =head2 lang()
 
 Set/Get current language for the next API call.
-The default language is 'EN'. See the wunderground API doc for a list of available languages. 
+The default language is 'EN'. See the wunderground API doc for a list of available languages.
 
 =head2 raw()
 
@@ -306,7 +311,8 @@ You can also set this to whatever json/xml you'd like, though I can't imagine wh
 
 =head2 cache()
 
-Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CHI> caches should work.
+Specify a cache object. Needs only to satisfy get(key) and set(key,value) interface.
+Any L<Cache::Cache> or L<CHI> cache should work.
 
 =head2 xml()
 

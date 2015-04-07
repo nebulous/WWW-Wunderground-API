@@ -39,5 +39,5 @@ SKIP: {
   is($wun->lang(),'EN','Default lang is "EN"');
   $wun->lang('FR');
   $wun->api_call('forecast10day');
-  like($wun->json(),qr/dimanche/, '10 days forecast in french include "dimanche"');
+  like($wun->json(),qr/dimanche/i, '10 days forecast in french include "dimanche"');
 }
