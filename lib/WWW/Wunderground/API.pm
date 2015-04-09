@@ -26,7 +26,7 @@ has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xm
 has cache => (is=>'ro', lazy=>1, default=>sub { WWW::Wunderground::API::BadCache->new });
 has auto_api => (is=>'ro', default=> sub {0} );
 has raw => (is=>'rw', default=>sub{''});
-has lang => (is=>'rw', default=>'EN');
+has lang => (is=>'rw', default=>sub{'EN'});
 has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
 
 sub json {
