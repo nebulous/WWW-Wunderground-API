@@ -1,6 +1,6 @@
 =head1 NAME
 
-WWW::Wunderground::API - Use Weather Underground's JSON/XML API
+WWW::Wunderground::API - Interface to Weather Underground API
 
 =head1 VERSION
 
@@ -9,10 +9,15 @@ Version 0.08
 
 =cut
 
+=head1 DESCRIPTION
+
+Provides an interface to the Weather Underground API.
+Conditions, forecast, almanac, satellite and radar maps, etc.
+
 =head1 SYNOPSIS
 
-Connects to the Weather Underground JSON/XML service and parses the response data
-into something usable.
+Connect to the Weather Underground JSON/XML webservice
+and parse the response data into something usable.
 
 The entire response is available in L<Hash::AsObject> form, so
 any data that comes from the server is accessible.
