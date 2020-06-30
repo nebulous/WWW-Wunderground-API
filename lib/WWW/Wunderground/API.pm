@@ -10,15 +10,15 @@ use Hash::AsObject;
 
 =head1 NAME
 
-WWW::Wunderground::API - Interface to Weather Underground API
+WWW::Wunderground::API - Interface to Weather Underground API (DISCONTINUED)
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 has location => (is=>'rw', required=>1);
 has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API}||$ENV{WUNDERGROUND_KEY} });
@@ -190,9 +190,14 @@ sub set {
   return $val;
 }
 
+=head1 DEPRECATION Notice
+
+DEPRECATED - The Weather Underground API has been decommissioned.
+As such, this module has no practical value
+
 =head1 DESCRIPTION
 
-Provides an interface to the Weather Underground API.
+Provides an interface to the(defunct) Weather Underground API.
 Conditions, forecast, almanac, satellite and radar maps, etc.
 
 =head1 SYNOPSIS
@@ -387,6 +392,9 @@ L<http://search.cpan.org/dist/WWW-Wunderground-API/>
 
 =head1 SEE ALSO
 
+Weather Underground discontinuation notice
+https://apicommunity.wunderground.com/weatherapi/topics/end-of-service-for-the-weather-underground-api
+
 If you'd like to scrape from Weather Underground rather than use the API, see L<Weather::Underground>.
 Without an API key, WWW::Wunderground::API can only get the current weather conditions.
 
@@ -395,7 +403,7 @@ L<http://www.wunderground.com/weather/api/d/docs>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2015 John Lifsey.
+Copyright 2020 John Lifsey.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
